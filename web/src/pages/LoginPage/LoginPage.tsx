@@ -11,7 +11,7 @@ export function LoginPage() {
                     Password:
                     <input type="password" name="password" />
                 </label>
-                <input type="submit" value="Submit" />
+                <input type="submit" value="submit" />
             </form>
         </>
     );
