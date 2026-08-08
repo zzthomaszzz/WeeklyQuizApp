@@ -1,14 +1,12 @@
-import { useEffect, useState } from 'react';
+import { Routes, Route } from 'react-router';
+import { LoginPage } from './pages/LoginPage/LoginPage';
 
 function App() {
-  const [status, setStatus] = useState('...');
-  useEffect(() => {
-    fetch('/api/health')
-      .then(r => r.json())
-      .then(d => setStatus(d.status))
-      .catch(() => setStatus('failed'));
-  }, []);
-  return <h1>Quiz App — API: {status}</h1>;
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="*" element={<h1>Page not found</h1>} />
+    </Routes>
+  );
 }
-
 export default App;
