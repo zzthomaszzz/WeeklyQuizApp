@@ -20,11 +20,11 @@ export function LoginPage() {
                                 <p>Get in</p>
                             </div>
                         </div>
-                        <label htmlFor="email">Email address</label>
-                        <input id="email" name="email" type="email" placeholder="youreducation@email" autoComplete="email" required />
+                        <label htmlFor="name">Name</label>
+                        <input id="name" name="name" type="text" autoComplete="username" required />
                         <label htmlFor="password">Password</label>
-                        <input id="password" name="password" type="password" autoComplete="current-password" required />
-                        <button type="submit">Sign in</button>
+                        <input id="password" name="password" type="password" autoComplete="password" required />
+                        <button type="submit">Submit</button>
                     </form>
 
                   
