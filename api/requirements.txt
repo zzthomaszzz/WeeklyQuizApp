@@ -8,3 +8,6 @@ pydantic-settings
 python-dotenv
 python-jose[cryptography]
 passlib[bcrypt]
+pytest
+pytest-asyncio
+httpx
