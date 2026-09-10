@@ -20,7 +20,7 @@
 .logoMark {
   align-items: center;
   background: #246ba1;
-  border-radius: 14px;
+  border-radius: 0;
   color: #fff;
   display: inline-flex;
   font-size: 1rem;
@@ -54,7 +54,7 @@
 .loginCard {
   background: #fff;
   border: 1px solid #d9e8f4;
-  border-radius: 16px;
+  border-radius: 0;
   box-shadow: 0 8px 24px rgb(41 89 123 / 8%);
   display: flex;
   flex-direction: column;
@@ -71,7 +71,7 @@
 .roleIcon {
   align-items: center;
   background: #dceefa;
-  border-radius: 50%;
+  border-radius: 0;
   color: #246ba1;
   display: inline-flex;
   font-size: 0.9rem;
@@ -100,7 +100,7 @@
 
 .loginCard input {
   border: 1px solid #bfd3e2;
-  border-radius: 8px;
+  border-radius: 0;
   font: inherit;
   margin: 0 0 18px;
   outline: none;
@@ -115,7 +115,7 @@
 .loginCard button {
   background: #246ba1;
   border: 0;
-  border-radius: 8px;
+  border-radius: 0;
   color: #fff;
   cursor: pointer;
   font: inherit;

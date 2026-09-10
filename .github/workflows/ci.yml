@@ -44,4 +44,6 @@ jobs:
           cache-dependency-path: api/requirements-dev.txt
 
       - run: pip install -r requirements-dev.txt
-      - run: pytest
+      # Separate processes prevent unit-test settings from affecting PostgreSQL tests.
+      - run: pytest unit_tests -q
+      - run: pytest tests -q

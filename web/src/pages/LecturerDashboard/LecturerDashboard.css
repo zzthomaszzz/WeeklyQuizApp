@@ -1,0 +1,8 @@
+.lecturer-courses { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 24px; }
+.lecturer-course { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; border: 1px solid #bfd3e2; border-radius: 0; background: #fff; color: #17324d; padding: 20px; text-align: left; }
+.lecturer-course:hover { background: #f4f9fe; }
+.lecturer-course[aria-pressed="true"] { border-color: #246ba1; background: #eaf5ff; }
+.lecturer-course .course-code { font-size: 13px; color: #246ba1; font-weight: 700; }
+.lecturer-course > span:last-child { color: #5f7487; font-size: 13px; }
+.lecturer-quizzes { margin-top: 24px; }
+@media (max-width: 680px) { .lecturer-courses { grid-template-columns: 1fr; } }
