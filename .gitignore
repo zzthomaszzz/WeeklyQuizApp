@@ -42,3 +42,6 @@ blob-report/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Local database seed credentials
+api/database/seed-users.local.sql
