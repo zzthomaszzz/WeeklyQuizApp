@@ -18,3 +18,4 @@ if not test_database_url:
 
 # Force the application to use the test database during pytest
 os.environ["DATABASE_URL"] = test_database_url
+os.environ.setdefault("JWT_SECRET_KEY", "test-only-jwt-secret")
