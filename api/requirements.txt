@@ -11,3 +11,4 @@ passlib[bcrypt]
 pytest
 pytest-asyncio
 httpx
+bcrypt
