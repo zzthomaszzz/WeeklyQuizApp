@@ -8,18 +8,11 @@ export function LoginPage() {
                 <header className={styles.brand}>
                     <div className={styles.logoMark} aria-hidden="true">WQ</div>
                     <h1 id="page-title">Weekly Quiz</h1>
-                    <p>Sign in to see the quizzes.</p>
                 </header>
 
                 <div className={styles.loginOptions}>
                     <form className={styles.loginCard}>
-                        <div className={styles.cardHeading}>
-                            <span className={styles.roleIcon} aria-hidden="true">L</span>
-                            <div>
-                                <h2>Login</h2>
-                                <p>Get in</p>
-                            </div>
-                        </div>
+                        <h2 className={styles.cardHeading}>Login</h2>
                         <label htmlFor="name">Name</label>
                         <input id="name" name="name" type="text" autoComplete="username" required />
                         <label htmlFor="password">Password</label>
@@ -29,6 +22,9 @@ export function LoginPage() {
 
                   
                 </div>
+                <footer className={styles.footer}>
+                    <a href="/dev">Development team</a>
+                </footer>
             </section>
         </main>
     );
