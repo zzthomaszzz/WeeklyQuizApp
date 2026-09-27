@@ -1,10 +1,12 @@
 import { Routes, Route } from 'react-router';
 import { LoginPage } from './pages/LoginPage/LoginPage';
+import { DevPage } from './pages/DevPage/DevPage';
 
 function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/dev" element={<DevPage />} />
       <Route path="*" element={<h1>Page not found</h1>} />
     </Routes>
   );

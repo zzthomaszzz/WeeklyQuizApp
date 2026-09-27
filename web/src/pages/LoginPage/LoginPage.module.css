@@ -38,12 +38,6 @@
   margin: 0;
 }
 
-.brand p,
-.cardHeading p {
-  color: #5f7487;
-  margin: 8px 0 0;
-}
-
 .loginOptions {
     display: grid;
     gap: 24px;
@@ -62,33 +56,9 @@
 }
 
 .cardHeading {
-  align-items: center;
-  display: flex;
-  gap: 12px;
-  margin-bottom: 26px;
-}
-
-.roleIcon {
-  align-items: center;
-  background: #dceefa;
-  border-radius: 50%;
-  color: #246ba1;
-  display: inline-flex;
-  font-size: 0.9rem;
-  font-weight: 800;
-  height: 36px;
-  justify-content: center;
-  width: 36px;
-}
-
-.cardHeading h2 {
   color: #17324d;
   font-size: 1.2rem;
-  margin: 0;
-}
-
-.cardHeading p {
-  font-size: 0.88rem;
+  margin: 0 0 26px;
 }
 
 .loginCard label {
@@ -126,6 +96,27 @@
 
 .loginCard button:hover {
   background: #1d5c8c;
+}
+
+.footer {
+  margin-top: 24px;
+  text-align: center;
+}
+
+.footer a {
+  color: #246ba1;
+  display: inline-block;
+  padding: 10px 4px;
+  text-underline-offset: 4px;
+}
+
+.footer a:hover {
+  color: #1d5c8c;
+}
+
+.footer a:focus-visible {
+  outline: 2px solid #246ba1;
+  outline-offset: 4px;
 }
 
 @media (max-width: 680px) {
