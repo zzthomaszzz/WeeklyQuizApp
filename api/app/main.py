@@ -19,7 +19,7 @@ app.add_middleware(
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import health
+from app.routers import health, quizzes
 
 
 app = FastAPI(title="Weekly Quiz API")
@@ -34,6 +34,7 @@ app.add_middleware(
 )
 
 app.include_router(health.router)
+app.include_router(quizzes.router)
 
 @app.get("/api/health/database")
 async def database_health():
