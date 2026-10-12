@@ -1,12 +1,111 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    status,
+)
+from fastapi.security import (
+    HTTPAuthorizationCredentials,
+    HTTPBearer,
+)
+from jose import JWTError, jwt
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.database import get_db
 from app.schemas.quizzes import QuizUpdate
 
 
-router = APIRouter(prefix="/api", tags=["quizzes"])
+router = APIRouter(
+    prefix="/api",
+    tags=["quizzes"],
+)
+
+bearer_scheme = HTTPBearer(auto_error=False)
+
+
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials | None = Depends(
+        bearer_scheme
+    ),
+    db: AsyncSession = Depends(get_db),
+):
+    if (
+        credentials is None
+        or credentials.scheme.lower() != "bearer"
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required",
+            headers={
+                "WWW-Authenticate": "Bearer",
+            },
+        )
+
+    try:
+        payload = jwt.decode(
+            credentials.credentials,
+            settings.jwt_secret_key,
+            algorithms=["HS256"],
+        )
+
+        subject = payload.get("sub")
+
+        if subject is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication token",
+                headers={
+                    "WWW-Authenticate": "Bearer",
+                },
+            )
+
+        user_id = int(subject)
+
+    except (JWTError, TypeError, ValueError) as error:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication token",
+            headers={
+                "WWW-Authenticate": "Bearer",
+            },
+        ) from error
+
+    user_result = await db.execute(
+        text(
+            """
+            SELECT
+                id,
+                email,
+                name,
+                role
+            FROM users
+            WHERE id = :user_id
+            """
+        ),
+        {
+            "user_id": user_id,
+        },
+    )
+
+    user = user_result.mappings().first()
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User no longer exists",
+            headers={
+                "WWW-Authenticate": "Bearer",
+            },
+        )
+
+    return {
+        "id": user["id"],
+        "email": user["email"],
+        "name": user["name"],
+        "role": str(user["role"]),
+    }
 
 
 @router.get("/courses/{course_id}/quizzes")
@@ -22,7 +121,9 @@ async def get_course_quizzes(
             WHERE id = :course_id
             """
         ),
-        {"course_id": course_id},
+        {
+            "course_id": course_id,
+        },
     )
 
     if course_result.first() is None:
@@ -48,35 +149,52 @@ async def get_course_quizzes(
             ORDER BY week_number ASC
             """
         ),
-        {"course_id": course_id},
+        {
+            "course_id": course_id,
+        },
     )
 
-    return [dict(row) for row in quiz_result.mappings().all()]
+    return [
+        dict(row)
+        for row in quiz_result.mappings().all()
+    ]
 
 
 @router.patch("/quizzes/{quiz_id}")
 async def update_quiz(
     quiz_id: int,
     quiz_update: QuizUpdate,
+    current_user=Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    if current_user["role"] != "lecturer":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only lecturers can update quizzes",
+        )
+
     quiz_result = await db.execute(
         text(
             """
             SELECT
-                id,
-                course_id,
-                week_number,
-                title,
-                material_url,
-                status,
-                opens_at,
-                closes_at
-            FROM quizzes
-            WHERE id = :quiz_id
+                q.id,
+                q.course_id,
+                q.week_number,
+                q.title,
+                q.material_url,
+                q.status,
+                q.opens_at,
+                q.closes_at,
+                c.lecturer_id
+            FROM quizzes AS q
+            JOIN courses AS c
+                ON c.id = q.course_id
+            WHERE q.id = :quiz_id
             """
         ),
-        {"quiz_id": quiz_id},
+        {
+            "quiz_id": quiz_id,
+        },
     )
 
     existing_quiz = quiz_result.mappings().first()
@@ -87,7 +205,15 @@ async def update_quiz(
             detail="Quiz not found",
         )
 
-    update_data = quiz_update.model_dump(exclude_unset=True)
+    if existing_quiz["lecturer_id"] != current_user["id"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not authorized to update this quiz",
+        )
+
+    update_data = quiz_update.model_dump(
+        exclude_unset=True
+    )
 
     if not update_data:
         raise HTTPException(
@@ -112,7 +238,10 @@ async def update_quiz(
     ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Quiz closing time must be after opening time",
+            detail=(
+                "Quiz closing time must be "
+                "after opening time"
+            ),
         )
 
     allowed_fields = {
@@ -128,7 +257,9 @@ async def update_quiz(
 
     for field in update_data:
         if field in allowed_fields:
-            set_clauses.append(f"{field} = :{field}")
+            set_clauses.append(
+                f"{field} = :{field}"
+            )
 
     update_data["quiz_id"] = quiz_id
 
@@ -172,7 +303,9 @@ async def get_quiz_questions(
             WHERE id = :quiz_id
             """
         ),
-        {"quiz_id": quiz_id},
+        {
+            "quiz_id": quiz_id,
+        },
     )
 
     if quiz_result.first() is None:
@@ -195,7 +328,12 @@ async def get_quiz_questions(
             ORDER BY position ASC
             """
         ),
-        {"quiz_id": quiz_id},
+        {
+            "quiz_id": quiz_id,
+        },
     )
 
-    return [dict(row) for row in question_result.mappings().all()]
+    return [
+        dict(row)
+        for row in question_result.mappings().all()
+    ]
