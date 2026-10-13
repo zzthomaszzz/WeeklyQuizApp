@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -5,7 +7,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.routers.auth import current_user
 from app.schemas.quizzes import QuizUpdate
-
 
 router = APIRouter(
     prefix="/api",
@@ -16,7 +17,7 @@ router = APIRouter(
 @router.get("/courses/{course_id}/quizzes")
 async def get_course_quizzes(
     course_id: int,
-    db: AsyncSession = Depends(get_db),
+    db: Annotated[AsyncSession, Depends(get_db)],
 ):
     course_result = await db.execute(
         text(
@@ -69,8 +70,8 @@ async def get_course_quizzes(
 async def update_quiz(
     quiz_id: int,
     quiz_update: QuizUpdate,
-    user=Depends(current_user),
-    db: AsyncSession = Depends(get_db),
+    user: Annotated[dict, Depends(current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
 ):
     if user["role"] != "lecturer":
         raise HTTPException(
@@ -198,7 +199,7 @@ async def update_quiz(
 @router.get("/quizzes/{quiz_id}/questions")
 async def get_quiz_questions(
     quiz_id: int,
-    db: AsyncSession = Depends(get_db),
+    db: Annotated[AsyncSession, Depends(get_db)],
 ):
     quiz_result = await db.execute(
         text(
