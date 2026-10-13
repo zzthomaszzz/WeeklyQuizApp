@@ -20,7 +20,7 @@
 .logoMark {
   align-items: center;
   background: #246ba1;
-  border-radius: 14px;
+  border-radius: 0;
   color: #fff;
   display: inline-flex;
   font-size: 1rem;
@@ -38,6 +38,12 @@
   margin: 0;
 }
 
+.brand p,
+.cardHeading p {
+  color: #5f7487;
+  margin: 8px 0 0;
+}
+
 .loginOptions {
     display: grid;
     gap: 24px;
@@ -48,7 +54,7 @@
 .loginCard {
   background: #fff;
   border: 1px solid #d9e8f4;
-  border-radius: 16px;
+  border-radius: 0;
   box-shadow: 0 8px 24px rgb(41 89 123 / 8%);
   display: flex;
   flex-direction: column;
@@ -56,9 +62,33 @@
 }
 
 .cardHeading {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  margin-bottom: 26px;
+}
+
+.roleIcon {
+  align-items: center;
+  background: #dceefa;
+  border-radius: 0;
+  color: #246ba1;
+  display: inline-flex;
+  font-size: 0.9rem;
+  font-weight: 800;
+  height: 36px;
+  justify-content: center;
+  width: 36px;
+}
+
+.cardHeading h2 {
   color: #17324d;
   font-size: 1.2rem;
-  margin: 0 0 26px;
+  margin: 0;
+}
+
+.cardHeading p {
+  font-size: 0.88rem;
 }
 
 .loginCard label {
@@ -70,7 +100,7 @@
 
 .loginCard input {
   border: 1px solid #bfd3e2;
-  border-radius: 8px;
+  border-radius: 0;
   font: inherit;
   margin: 0 0 18px;
   outline: none;
@@ -85,7 +115,7 @@
 .loginCard button {
   background: #246ba1;
   border: 0;
-  border-radius: 8px;
+  border-radius: 0;
   color: #fff;
   cursor: pointer;
   font: inherit;
@@ -96,27 +126,6 @@
 
 .loginCard button:hover {
   background: #1d5c8c;
-}
-
-.footer {
-  margin-top: 24px;
-  text-align: center;
-}
-
-.footer a {
-  color: #246ba1;
-  display: inline-block;
-  padding: 10px 4px;
-  text-underline-offset: 4px;
-}
-
-.footer a:hover {
-  color: #1d5c8c;
-}
-
-.footer a:focus-visible {
-  outline: 2px solid #246ba1;
-  outline-offset: 4px;
 }
 
 @media (max-width: 680px) {
