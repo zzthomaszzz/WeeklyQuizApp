@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import bcrypt
 from jose import JWTError, jwt
@@ -82,7 +82,7 @@ class AuthService:
         return public_user(user)
 
     def token(self, user):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         return jwt.encode(
             {
                 "sub": str(user["id"]),
