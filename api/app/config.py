@@ -2,7 +2,6 @@ from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
 API_DIRECTORY = Path(__file__).resolve().parent.parent
 
 # Below this length a signing secret is too weak to be worth trusting.

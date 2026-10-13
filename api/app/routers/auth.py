@@ -7,7 +7,6 @@ from app.repositories.users import UserRepository
 from app.schemas.auth import LoginRequest, RegisterRequest, UserResponse
 from app.services.auth import AuthService, EmailAlreadyRegistered
 
-
 router = APIRouter(prefix="/api", tags=["auth"])
 
 COOKIE = "weekly_quiz_session"
