@@ -4,16 +4,11 @@ from fastapi import (
     HTTPException,
     status,
 )
-from fastapi.security import (
-    HTTPAuthorizationCredentials,
-    HTTPBearer,
-)
-from jose import JWTError, jwt
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.config import settings
 from app.database import get_db
+from app.routers.auth import current_user
 from app.schemas.quizzes import QuizUpdate
 
 
@@ -21,91 +16,6 @@ router = APIRouter(
     prefix="/api",
     tags=["quizzes"],
 )
-
-bearer_scheme = HTTPBearer(auto_error=False)
-
-
-async def get_current_user(
-    credentials: HTTPAuthorizationCredentials | None = Depends(
-        bearer_scheme
-    ),
-    db: AsyncSession = Depends(get_db),
-):
-    if (
-        credentials is None
-        or credentials.scheme.lower() != "bearer"
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required",
-            headers={
-                "WWW-Authenticate": "Bearer",
-            },
-        )
-
-    try:
-        payload = jwt.decode(
-            credentials.credentials,
-            settings.jwt_secret_key,
-            algorithms=["HS256"],
-        )
-
-        subject = payload.get("sub")
-
-        if subject is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid authentication token",
-                headers={
-                    "WWW-Authenticate": "Bearer",
-                },
-            )
-
-        user_id = int(subject)
-
-    except (JWTError, TypeError, ValueError) as error:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication token",
-            headers={
-                "WWW-Authenticate": "Bearer",
-            },
-        ) from error
-
-    user_result = await db.execute(
-        text(
-            """
-            SELECT
-                id,
-                email,
-                name,
-                role
-            FROM users
-            WHERE id = :user_id
-            """
-        ),
-        {
-            "user_id": user_id,
-        },
-    )
-
-    user = user_result.mappings().first()
-
-    if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User no longer exists",
-            headers={
-                "WWW-Authenticate": "Bearer",
-            },
-        )
-
-    return {
-        "id": user["id"],
-        "email": user["email"],
-        "name": user["name"],
-        "role": str(user["role"]),
-    }
 
 
 @router.get("/courses/{course_id}/quizzes")
@@ -164,10 +74,10 @@ async def get_course_quizzes(
 async def update_quiz(
     quiz_id: int,
     quiz_update: QuizUpdate,
-    current_user=Depends(get_current_user),
+    user=Depends(current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    if current_user["role"] != "lecturer":
+    if user["role"] != "lecturer":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only lecturers can update quizzes",
@@ -205,7 +115,7 @@ async def update_quiz(
             detail="Quiz not found",
         )
 
-    if existing_quiz["lecturer_id"] != current_user["id"]:
+    if existing_quiz["lecturer_id"] != user["id"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You are not authorized to update this quiz",

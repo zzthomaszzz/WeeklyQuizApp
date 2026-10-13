@@ -287,15 +287,47 @@ Once approved and CI is green, use **Squash and merge** on GitHub.
 
 This collapses your branch's commits into one clean commit on `main`. Keeps history readable and means your messy "wip", "fix typo", "actually fix typo" commits don't end up in the permanent record.
 
-Then clean up locally:
+Then clean up. Four steps, always in this order:
 
 ```bash
-git switch main
-git pull
-git branch -d feat/quiz-creation
+git switch main                              # you can't delete the branch you're on
+git pull                                     # main now has the merged work
+git branch -d feat/quiz-creation             # delete your local copy
+git push origin --delete feat/quiz-creation  # delete it on GitHub
 ```
 
-Delete the remote branch too — GitHub offers a button right after merging.
+The local branch and the remote branch are two separate things. `git branch -d`
+only removes yours; GitHub keeps its copy until you delete that too.
+
+Both commands take several names at once:
+
+```bash
+git branch -d feat/one feat/two
+git push origin --delete feat/one feat/two
+```
+
+**Use lowercase `-d`, not `-D`.** `-d` refuses to delete a branch whose commits
+aren't reachable from `main` — that refusal is Git catching a mistake for you.
+`-D` deletes regardless, and unmerged work is then gone.
+
+To see what's safe before deleting anything:
+
+```bash
+git branch --merged origin/main
+```
+
+Anything listed is fully contained in `main`. Anything missing still holds work
+that exists nowhere else.
+
+> **One catch with squash merges.** Squashing creates a *new* commit on `main`,
+> so your branch tip is never an ancestor of it. `-d` will say "not fully merged"
+> even though the changes did land, and the branch won't appear in
+> `--merged origin/main`. Confirm the PR shows as merged, then use `-D` for that
+> case only — never as a reflex when `-d` complains.
+
+Easier: turn on **Settings → General → Automatically delete head branches**.
+GitHub then removes the remote branch the moment a PR merges, and you only ever
+run the local delete.
 
 ---
 
@@ -363,10 +395,14 @@ git merge origin/main
 git push -u origin feat/my-thing
 # → open PR on GitHub → get review → squash and merge
 
-# clean up
+# clean up (once the PR is merged)
 git switch main
 git pull
 git branch -d feat/my-thing
+git push origin --delete feat/my-thing   # not needed if auto-delete is on
+
+# what's safe to delete?
+git branch --merged origin/main
 ```
 
 ---
