@@ -18,3 +18,8 @@ if not test_database_url:
 
 # Force the application to use the test database during pytest
 os.environ["DATABASE_URL"] = test_database_url
+
+os.environ.setdefault(
+    "SESSION_SECRET", "integration-test-secret-at-least-32-chars"
+)
+os.environ.setdefault("COOKIE_SECURE", "false")
