@@ -6,7 +6,6 @@ from starlette.responses import JSONResponse
 from app.config import settings
 from app.routers import auth, health
 
-
 app = FastAPI(title="Weekly Quiz API")
 
 app.add_middleware(

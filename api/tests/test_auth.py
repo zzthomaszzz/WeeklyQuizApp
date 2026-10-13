@@ -10,7 +10,6 @@ from sqlalchemy import text
 from app.database import engine
 from app.main import app
 
-
 client = TestClient(app)
 
 

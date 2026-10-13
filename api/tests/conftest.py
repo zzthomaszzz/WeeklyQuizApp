@@ -3,7 +3,6 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-
 API_DIR = Path(__file__).resolve().parent.parent
 TEST_ENV_FILE = API_DIR / ".env.test"
 

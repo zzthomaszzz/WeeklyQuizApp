@@ -5,6 +5,10 @@ from jose import JWTError, jwt
 from passlib.hash import pbkdf2_sha256
 from starlette.concurrency import run_in_threadpool
 
+from app.errors import EmailAlreadyRegistered
+
+__all__ = ["AuthService", "EmailAlreadyRegistered", "hash_password", "public_user", "verify_password"]
+
 
 TOKEN_ISSUER = "weekly-quiz"
 SESSION_HOURS = 8
@@ -13,10 +17,6 @@ SESSION_HOURS = 8
 MAX_PASSWORD_BYTES = 72
 
 ALLOWED_ROLES = ("student", "lecturer")
-
-
-class EmailAlreadyRegistered(Exception):
-    """Raised when a registration reuses an existing email address."""
 
 
 def verify_password(password, password_hash):
@@ -52,18 +52,16 @@ class AuthService:
 
         password_hash = await run_in_threadpool(hash_password, password)
 
-        try:
-            user = await self.repository.create_user(
-                email=email,
-                name=name,
-                password_hash=password_hash,
-                role=role,
-            )
-        except Exception:
-            # A concurrent signup can win the race between the check above
-            # and the insert; the unique index is the real guard.
-            await self.repository.rollback()
-            raise EmailAlreadyRegistered()
+        # A concurrent signup can still win the race between the check above
+        # and the insert; the repository translates that collision into
+        # EmailAlreadyRegistered rather than letting it surface as a
+        # database error.
+        user = await self.repository.create_user(
+            email=email,
+            name=name,
+            password_hash=password_hash,
+            role=role,
+        )
 
         return public_user(user)
 
