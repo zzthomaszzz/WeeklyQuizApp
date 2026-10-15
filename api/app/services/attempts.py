@@ -8,6 +8,10 @@ class InvalidSubmission(Exception):
     """The submission does not match the quiz it claims to answer."""
 
 
+class AttemptLimitReached(Exception):
+    """The student has already used every attempt this quiz allows."""
+
+
 class AttemptService:
     """Scoring rules for a submitted quiz. Takes a repository so unit tests
     can supply a fake and run with no database."""
@@ -19,6 +23,14 @@ class AttemptService:
         quiz = await self.repository.quiz_open_for_student(quiz_id, student_id)
         if quiz is None:
             raise QuizNotAvailable()
+
+        # max_attempts is NULL for an unlimited quiz. The check happens
+        # before grading, so a rejected attempt is never scored or stored.
+        limit = quiz["max_attempts"]
+        if limit is not None:
+            taken = await self.repository.attempts_taken(quiz_id, student_id)
+            if taken >= limit:
+                raise AttemptLimitReached()
 
         options_by_question = self.build_options(
             await self.repository.grading_key(quiz_id)

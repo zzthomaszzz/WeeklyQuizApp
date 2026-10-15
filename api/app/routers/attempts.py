@@ -5,6 +5,7 @@ from app.repositories.attempts import AttemptRepository
 from app.routers.auth import current_user
 from app.schemas.attempts import AttemptResult, AttemptSubmission
 from app.services.attempts import (
+    AttemptLimitReached,
     AttemptService,
     InvalidSubmission,
     QuizNotAvailable,
@@ -48,5 +49,10 @@ async def submit_attempt(
         # Deliberately 404, not 403: a student should not be able to discover
         # that a quiz they cannot reach exists.
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Quiz not found")
+    except AttemptLimitReached:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            "You have used all your attempts for this quiz",
+        )
     except InvalidSubmission as error:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(error))

@@ -14,7 +14,7 @@ class AttemptRepository:
         result = await self.session.execute(
             text(
                 """
-                SELECT q.id, q.title
+                SELECT q.id, q.title, q.max_attempts
                 FROM quizzes q
                 JOIN courses c ON c.id = q.course_id
                 JOIN enrolments e

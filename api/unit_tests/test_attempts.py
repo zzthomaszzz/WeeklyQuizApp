@@ -5,6 +5,7 @@ from app.main import app
 from app.routers.attempts import attempt_repository
 from app.routers.auth import current_user
 from app.services.attempts import (
+    AttemptLimitReached,
     AttemptService,
     InvalidSubmission,
     QuizNotAvailable,
@@ -24,14 +25,23 @@ GRADING_KEY = [
 
 
 class FakeRepository:
-    def __init__(self, quiz_available=True):
+    def __init__(self, quiz_available=True, max_attempts=None, already_taken=0):
         self.quiz_available = quiz_available
+        self.max_attempts = max_attempts
+        self.already_taken = already_taken
         self.saved = None
 
     async def quiz_open_for_student(self, quiz_id, student_id):
         if not self.quiz_available:
             return None
-        return {"id": quiz_id, "title": "Week 3"}
+        return {
+            "id": quiz_id,
+            "title": "Week 3",
+            "max_attempts": self.max_attempts,
+        }
+
+    async def attempts_taken(self, quiz_id, student_id):
+        return self.already_taken
 
     async def grading_key(self, quiz_id):
         return list(GRADING_KEY)
@@ -238,3 +248,59 @@ async def test_service_raises_on_an_incomplete_submission():
             student_id=1,
             answers=[{"question_id": 40, "selected_option_id": 101}],
         )
+
+
+ANSWERS = [
+    {"question_id": 40, "selected_option_id": 101},
+    {"question_id": 41, "selected_option_id": 103},
+]
+
+
+def test_allows_unlimited_attempts_when_no_limit_is_set():
+    repository = FakeRepository(max_attempts=None, already_taken=25)
+    client = build_client(repository)
+
+    response = submit(client, ANSWERS)
+
+    assert response.status_code == 201
+    app.dependency_overrides.clear()
+
+
+def test_allows_an_attempt_below_the_limit():
+    repository = FakeRepository(max_attempts=3, already_taken=2)
+    client = build_client(repository)
+
+    response = submit(client, ANSWERS)
+
+    assert response.status_code == 201
+    app.dependency_overrides.clear()
+
+
+def test_rejects_an_attempt_once_the_limit_is_reached():
+    repository = FakeRepository(max_attempts=2, already_taken=2)
+    client = build_client(repository)
+
+    response = submit(client, ANSWERS)
+
+    assert response.status_code == 409
+    assert "attempt" in response.json()["detail"].lower()
+    assert repository.saved is None
+    app.dependency_overrides.clear()
+
+
+def test_does_not_grade_an_attempt_that_exceeds_the_limit():
+    repository = FakeRepository(max_attempts=1, already_taken=5)
+    client = build_client(repository)
+
+    submit(client, ANSWERS)
+
+    assert repository.saved is None
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_service_raises_when_the_attempt_limit_is_reached():
+    service = AttemptService(FakeRepository(max_attempts=1, already_taken=1))
+
+    with pytest.raises(AttemptLimitReached):
+        await service.submit(quiz_id=5, student_id=1, answers=ANSWERS)

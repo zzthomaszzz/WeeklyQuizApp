@@ -36,6 +36,25 @@ python -m venv .venv
 .venv/Scripts/pip.exe install -r requirements-dev.txt
 ```
 
+Copy `api/.env.example` to `api/.env` and fill in the values. The backend
+will not start without `DATABASE_URL`, and login returns 503 without a
+`SESSION_SECRET` of at least 32 characters.
+
+The integration tests use a **separate** database and read it from
+`api/.env.test`, not `api/.env`:
+
+```
+TEST_DATABASE_URL=postgresql+asyncpg://username:password@hostname/database
+```
+
+Then seed it — user accounts first, because the sample data looks them up
+by email:
+
+```bash
+psql "$TEST_DATABASE_URL" -f database/seed-users.example.sql
+psql "$TEST_DATABASE_URL" -f database/seed.sql
+```
+
 Frontend:
 
 ```bash
@@ -72,12 +91,29 @@ Open http://localhost:5173 — it should show `API: ok`.
 
 ## Testing
 
+Frontend:
+
 ```bash
 cd web && npm test
 ```
 
+Backend. These run as two separate processes, exactly as CI does — the unit
+suite sets a dummy `DATABASE_URL` that must not leak into the integration
+suite:
+
 ```bash
-cd api && .venv/Scripts/pytest.exe
+cd api
+.venv/Scripts/python.exe -m pytest unit_tests -q
+.venv/Scripts/python.exe -m pytest tests -q
+```
+
+`unit_tests` needs no database. `tests` needs `TEST_DATABASE_URL`.
+
+Linting and coverage, which CI also enforces:
+
+```bash
+cd web && npm run lint && npm run test:coverage
+cd api && .venv/Scripts/python.exe -m ruff check .
 ```
 
 ## Common issues
@@ -87,6 +123,13 @@ cd api && .venv/Scripts/pytest.exe
 - **`ModuleNotFoundError: No module named 'app'`** — run uvicorn from `api/`,
   not the repo root.
 - **`uvicorn: command not found`** — use the full `.venv/Scripts/` path.
+- **`Login is not configured on the server` (503)** — `SESSION_SECRET` is
+  missing from `api/.env`, or is shorter than 32 characters.
+- **`TEST_DATABASE_URL is missing`** — create `api/.env.test`. The test
+  harness reads that file, not `api/.env`.
+- **`password authentication failed`** — the connection string is stale.
+  Neon issues a password per branch, so a string copied from another branch
+  will not work.
 
 ## Project structure
 
@@ -98,6 +141,21 @@ web/        React frontend
   src/
 docs/
 ```
+
+## Database
+
+`api/database/schema.sql` creates a fresh database. `migrations/` holds
+changes to apply to databases that already exist — run them in order.
+
+Seeding is two files, in this order:
+
+```bash
+psql "$DATABASE_URL" -f api/database/seed-users.example.sql
+psql "$DATABASE_URL" -f api/database/seed.sql
+```
+
+The sample accounts all use the password `demo-password-2026`. They are for
+development and test databases only.
 
 ## Docs
 
