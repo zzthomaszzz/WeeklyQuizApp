@@ -35,6 +35,7 @@ jobs:
         working-directory: api
     env:
       TEST_DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+      JWT_SECRET_KEY: ci-test-jwt-secret
     steps:
       - uses: actions/checkout@v4
 
