@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import bcrypt
 import pytest
@@ -208,7 +208,7 @@ async def test_invalid_expired_and_deleted_user_sessions():
         {
             "sub": "1",
             "iss": "weekly-quiz",
-            "exp": datetime.now(timezone.utc) - timedelta(seconds=10),
+            "exp": datetime.now(UTC) - timedelta(seconds=10),
         },
         SECRET,
         algorithm="HS256",

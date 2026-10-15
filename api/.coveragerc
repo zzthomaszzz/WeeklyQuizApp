@@ -1,0 +1,9 @@
+[run]
+source = app
+omit =
+    app/__init__.py
+    app/*/__init__.py
+
+[report]
+show_missing = True
+skip_covered = False

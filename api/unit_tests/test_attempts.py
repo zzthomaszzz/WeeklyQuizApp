@@ -10,7 +10,6 @@ from app.services.attempts import (
     QuizNotAvailable,
 )
 
-
 STUDENT = {"id": 1, "email": "student@example.test", "name": "Student", "role": "student"}
 LECTURER = {"id": 9, "email": "lecturer@example.test", "name": "Lecturer", "role": "lecturer"}
 

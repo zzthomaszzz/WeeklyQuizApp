@@ -1,0 +1,6 @@
+exclude = [".venv"]
+
+[lint]
+# B008 flags `Depends()` in argument defaults, which is the documented
+# FastAPI idiom for declaring dependencies. Not a defect in this project.
+extend-ignore = ["B008"]

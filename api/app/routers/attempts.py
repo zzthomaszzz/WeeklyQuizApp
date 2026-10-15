@@ -10,7 +10,6 @@ from app.services.attempts import (
     QuizNotAvailable,
 )
 
-
 router = APIRouter(prefix="/api", tags=["attempts"])
 
 
