@@ -1,12 +1,13 @@
 import { dashboardFixture } from '../../test/dashboardFixture'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router'
 import { LecturerDashboard } from './LecturerDashboard'
 
 describe('Lecturer dashboard', () => {
   it('filters quizzes when a lecturer selects a course and clears empty results', async () => {
     const user = userEvent.setup()
-    render(<LecturerDashboard data={{ ...dashboardFixture, user: { ...dashboardFixture.user, role: "lecturer" } }} />)
+    render(<MemoryRouter><LecturerDashboard data={{ ...dashboardFixture, user: { ...dashboardFixture.user, role: "lecturer" } }} /></MemoryRouter>)
     await user.click(screen.getByRole('button', { name: /ENSE707/ }))
     expect(screen.getByRole('heading', { name: 'Example 1' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Example 2' })).not.toBeInTheDocument()
