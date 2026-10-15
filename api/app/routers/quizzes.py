@@ -17,19 +17,38 @@ router = APIRouter(
 @router.get("/courses/{course_id}/quizzes")
 async def get_course_quizzes(
     course_id: int,
+    user: Annotated[dict, Depends(current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
+    """Quizzes in a course, scoped to what the caller may see.
+
+    A lecturer sees every quiz in a course they own. A student sees only
+    published quizzes inside their open window, in a course they are
+    enrolled in. Anyone else gets 404 rather than 403, so the response
+    cannot be used to confirm the course exists.
+    """
+    if user["role"] == "lecturer":
+        visible_course = """
+            SELECT id FROM courses
+            WHERE id = :course_id AND lecturer_id = :user_id
+        """
+        quiz_filter = ""
+    else:
+        visible_course = """
+            SELECT c.id FROM courses c
+            JOIN enrolments e ON e.course_id = c.id
+                             AND e.student_id = :user_id
+            WHERE c.id = :course_id
+        """
+        quiz_filter = """
+            AND status = 'published'
+            AND (opens_at IS NULL OR opens_at <= CURRENT_TIMESTAMP)
+            AND (closes_at IS NULL OR closes_at > CURRENT_TIMESTAMP)
+        """
+
     course_result = await db.execute(
-        text(
-            """
-            SELECT id
-            FROM courses
-            WHERE id = :course_id
-            """
-        ),
-        {
-            "course_id": course_id,
-        },
+        text(visible_course),
+        {"course_id": course_id, "user_id": user["id"]},
     )
 
     if course_result.first() is None:
@@ -40,7 +59,7 @@ async def get_course_quizzes(
 
     quiz_result = await db.execute(
         text(
-            """
+            f"""
             SELECT
                 id,
                 course_id,
@@ -52,12 +71,11 @@ async def get_course_quizzes(
                 closes_at
             FROM quizzes
             WHERE course_id = :course_id
+            {quiz_filter}
             ORDER BY week_number ASC
             """
         ),
-        {
-            "course_id": course_id,
-        },
+        {"course_id": course_id},
     )
 
     return [
@@ -199,19 +217,36 @@ async def update_quiz(
 @router.get("/quizzes/{quiz_id}/questions")
 async def get_quiz_questions(
     quiz_id: int,
+    user: Annotated[dict, Depends(current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
+    """Questions and their answer options for one quiz.
+
+    Correctness is deliberately absent from the response: the selected
+    column list below never includes options.is_correct, so it cannot be
+    returned by accident. Grading happens server-side on submission.
+    """
+    if user["role"] == "lecturer":
+        visible_quiz = """
+            SELECT q.id FROM quizzes q
+            JOIN courses c ON c.id = q.course_id
+            WHERE q.id = :quiz_id AND c.lecturer_id = :user_id
+        """
+    else:
+        visible_quiz = """
+            SELECT q.id FROM quizzes q
+            JOIN courses c ON c.id = q.course_id
+            JOIN enrolments e ON e.course_id = c.id
+                             AND e.student_id = :user_id
+            WHERE q.id = :quiz_id
+              AND q.status = 'published'
+              AND (q.opens_at IS NULL OR q.opens_at <= CURRENT_TIMESTAMP)
+              AND (q.closes_at IS NULL OR q.closes_at > CURRENT_TIMESTAMP)
+        """
+
     quiz_result = await db.execute(
-        text(
-            """
-            SELECT id
-            FROM quizzes
-            WHERE id = :quiz_id
-            """
-        ),
-        {
-            "quiz_id": quiz_id,
-        },
+        text(visible_quiz),
+        {"quiz_id": quiz_id, "user_id": user["id"]},
     )
 
     if quiz_result.first() is None:
@@ -234,12 +269,37 @@ async def get_quiz_questions(
             ORDER BY position ASC
             """
         ),
-        {
-            "quiz_id": quiz_id,
-        },
+        {"quiz_id": quiz_id},
     )
 
-    return [
-        dict(row)
-        for row in question_result.mappings().all()
-    ]
+    questions = [dict(row) for row in question_result.mappings().all()]
+
+    if not questions:
+        return []
+
+    option_result = await db.execute(
+        text(
+            """
+            SELECT
+                id,
+                question_id,
+                text,
+                position
+            FROM options
+            WHERE question_id = ANY(:question_ids)
+            ORDER BY question_id, position ASC
+            """
+        ),
+        {"question_ids": [question["id"] for question in questions]},
+    )
+
+    options_by_question: dict[int, list[dict]] = {}
+    for option in option_result.mappings().all():
+        options_by_question.setdefault(
+            option["question_id"], []
+        ).append(dict(option))
+
+    for question in questions:
+        question["options"] = options_by_question.get(question["id"], [])
+
+    return questions
