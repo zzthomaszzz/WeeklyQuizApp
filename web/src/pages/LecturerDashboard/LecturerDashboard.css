@@ -6,3 +6,10 @@
 .lecturer-course > span:last-child { color: #5f7487; font-size: 13px; }
 .lecturer-quizzes { margin-top: 24px; }
 @media (max-width: 680px) { .lecturer-courses { grid-template-columns: 1fr; } }
+
+.new-quiz-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 14px 0 0;
+}
