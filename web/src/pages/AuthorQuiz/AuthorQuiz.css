@@ -139,3 +139,17 @@
 }
 
 .verdict.correct { background: #dcefe8; color: #1d7a62; }
+
+.publish-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 4px 0 16px;
+}
+
+.publish-note {
+  margin: 0;
+  font-size: 13px;
+  color: #5c6472;
+}

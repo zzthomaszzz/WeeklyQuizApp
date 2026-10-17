@@ -168,6 +168,26 @@ async def update_quiz(
             ),
         )
 
+    if update_data.get("status") == "published":
+        question_count = await db.execute(
+            text(
+                """
+                SELECT COUNT(*) FROM questions
+                WHERE quiz_id = :quiz_id
+                """
+            ),
+            {"quiz_id": quiz_id},
+        )
+
+        if question_count.scalar_one() == 0:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=(
+                    "A quiz needs at least one question "
+                    "before it can be published"
+                ),
+            )
+
     allowed_fields = {
         "week_number",
         "title",
@@ -175,6 +195,7 @@ async def update_quiz(
         "status",
         "opens_at",
         "closes_at",
+        "max_attempts",
     }
 
     set_clauses = []

@@ -226,3 +226,81 @@ def test_a_second_correct_option_is_refused_by_the_database(authoring):
         asyncio.run(add_second_correct())
 
     assert "uq_one_correct_option" in str(raised.value)
+
+
+# ------------------------------------------------------------------ publishing
+
+
+def publish(client, quiz_id):
+    return client.patch(f"/api/quizzes/{quiz_id}", json={"status": "published"})
+
+
+def test_publishing_an_empty_quiz_is_refused(authoring):
+    quiz_id = create_quiz(authoring["lecturer"], authoring["course_id"]).json()["id"]
+
+    response = publish(authoring["lecturer"], quiz_id)
+
+    assert response.status_code == 422
+    assert "question" in response.json()["detail"].lower()
+
+
+def test_a_quiz_with_questions_can_be_published(authoring):
+    quiz_id = create_quiz(authoring["lecturer"], authoring["course_id"]).json()["id"]
+    authoring["lecturer"].post(f"/api/quizzes/{quiz_id}/questions", json=QUESTION)
+
+    response = publish(authoring["lecturer"], quiz_id)
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "published"
+
+
+def test_a_published_quiz_becomes_visible_to_an_enrolled_student(authoring):
+    quiz_id = create_quiz(authoring["lecturer"], authoring["course_id"]).json()["id"]
+    authoring["lecturer"].post(f"/api/quizzes/{quiz_id}/questions", json=QUESTION)
+
+    async def enrol():
+        async with engine.begin() as connection:
+            await connection.execute(
+                text(
+                    """
+                    INSERT INTO enrolments (student_id, course_id)
+                    SELECT u.id, :course_id FROM users u
+                    WHERE u.email = (SELECT email FROM users WHERE id = u.id)
+                      AND u.role = 'student'
+                      AND u.id = (SELECT MAX(id) FROM users WHERE role = 'student')
+                    ON CONFLICT (student_id, course_id) DO NOTHING
+                    """
+                ),
+                {"course_id": authoring["course_id"]},
+            )
+
+    before = authoring["student"].get(f"/api/quizzes/{quiz_id}/questions")
+    assert before.status_code == 404
+
+    publish(authoring["lecturer"], quiz_id)
+    asyncio.run(enrol())
+
+    after = authoring["student"].get(f"/api/quizzes/{quiz_id}/questions")
+    assert after.status_code == 200
+
+
+def test_the_attempt_limit_can_be_changed_after_creation(authoring):
+    quiz_id = create_quiz(authoring["lecturer"], authoring["course_id"]).json()["id"]
+
+    response = authoring["lecturer"].patch(
+        f"/api/quizzes/{quiz_id}", json={"max_attempts": 3}
+    )
+
+    assert response.status_code == 200
+
+    async def read_limit():
+        async with engine.begin() as connection:
+            return (
+                await connection.execute(
+                    text("SELECT max_attempts FROM quizzes WHERE id = :id"),
+                    {"id": quiz_id},
+                )
+            ).scalar_one()
+
+    assert asyncio.run(read_limit()) == 3
+
