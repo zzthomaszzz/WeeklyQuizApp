@@ -6,7 +6,7 @@ Formative only — quizzes do not count toward grades.
 
 ## Stack
 - Frontend: React (Vite + TypeScript) in /web
-- Backend: FastAPI (Python 3.12) in /api, deployed as Vercel Python Functions
+- Backend: FastAPI (Python 3.13) in /api, deployed as Vercel Python Functions
 - DB: PostgreSQL on Neon (prod), local Docker Postgres (dev)
 - ORM: SQLAlchemy 2.0 async + Alembic
 - Tests: pytest, Vitest + RTL + MSW, Playwright

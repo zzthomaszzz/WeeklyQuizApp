@@ -70,6 +70,8 @@ CREATE TABLE quizzes (
     status quiz_status NOT NULL DEFAULT 'draft',
     opens_at TIMESTAMPTZ,
     closes_at TIMESTAMPTZ,
+    -- NULL means unlimited attempts.
+    max_attempts INTEGER,
 
     CONSTRAINT fk_quizzes_course
         FOREIGN KEY (course_id)
@@ -78,6 +80,9 @@ CREATE TABLE quizzes (
 
     CONSTRAINT chk_quiz_week
         CHECK (week_number > 0),
+
+    CONSTRAINT chk_quiz_max_attempts
+        CHECK (max_attempts IS NULL OR max_attempts > 0),
 
     CONSTRAINT chk_quiz_dates
         CHECK (
