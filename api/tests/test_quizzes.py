@@ -300,14 +300,24 @@ def test_questions_response_does_not_expose_is_correct(quiz_setup):
     assert "is_correct" not in questions[0]
 
 
-def test_get_quizzes_for_missing_course_returns_404():
+def test_get_quizzes_for_missing_course_returns_404(quiz_setup):
+    # The caller must be signed in: an anonymous request is rejected before
+    # the course is looked up, so it cannot learn whether one exists.
+    response = quiz_setup["owner_client"].get(
+        "/api/courses/2147483647/quizzes"
+    )
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Course not found"
+
+
+def test_get_quizzes_without_a_session_is_rejected():
     client = TestClient(app)
 
     response = client.get(
         "/api/courses/2147483647/quizzes"
     )
 
-    assert response.status_code == 404
-    assert response.json()["detail"] == "Course not found"
+    assert response.status_code == 401
 
     client.close()
