@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
+import { SiteHeader } from '../../components/SiteHeader'
 import '../StudentsDashboard/Dashboard.css'
 import type { DashboardData } from '../../api/client'
 import './LecturerDashboard.css'
@@ -16,10 +17,7 @@ export function LecturerDashboard({ data }: { data: DashboardData }) {
   })
 
   return <div className="dashboard lecturer-dashboard">
-    <header className="site-header">
-      <a className="brand-link" href="/lecturer"><span className="brand-symbol">WQ</span>Weekly Quiz<span className="brand-divider">/</span><span className="workspace-name">Lecturer workspace</span></a>
-      <span className="workspace-name">{user.name}</span>
-    </header>
+    <SiteHeader workspace="Lecturer workspace" userName={user.name} />
     <main className="dashboard-main">
       <div className="page-intro"><h1>Lecturer dashboard</h1><p className="intro-copy">Your courses and weekly quizzes.</p></div>
       <section className="quiz-section" aria-labelledby="courses-title">
