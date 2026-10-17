@@ -142,3 +142,15 @@
     padding: 24px;
   }
 }
+
+.altAction {
+  margin: 4px 0 0;
+  font-size: 13px;
+  text-align: center;
+  color: #5c6472;
+}
+
+.altAction a {
+  color: #27598f;
+  font-weight: 600;
+}
