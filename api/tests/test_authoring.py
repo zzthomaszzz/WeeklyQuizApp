@@ -79,12 +79,14 @@ def authoring():
         assert response.status_code == 201
 
     lecturer_id = asyncio.run(user_id_for(lecturer_email))
+    student_id = asyncio.run(user_id_for(student_email))
     course_id = asyncio.run(make_course(lecturer_id))
 
     try:
         yield {
             "lecturer": lecturer,
             "student": student,
+            "student_id": student_id,
             "course_id": course_id,
         }
     finally:
@@ -259,19 +261,22 @@ def test_a_published_quiz_becomes_visible_to_an_enrolled_student(authoring):
     authoring["lecturer"].post(f"/api/quizzes/{quiz_id}/questions", json=QUESTION)
 
     async def enrol():
+        # Enrol this fixture's own student by id. Selecting the newest
+        # student in the table instead would pick up another test run's
+        # user whenever two suites share the database.
         async with engine.begin() as connection:
             await connection.execute(
                 text(
                     """
                     INSERT INTO enrolments (student_id, course_id)
-                    SELECT u.id, :course_id FROM users u
-                    WHERE u.email = (SELECT email FROM users WHERE id = u.id)
-                      AND u.role = 'student'
-                      AND u.id = (SELECT MAX(id) FROM users WHERE role = 'student')
+                    VALUES (:student_id, :course_id)
                     ON CONFLICT (student_id, course_id) DO NOTHING
                     """
                 ),
-                {"course_id": authoring["course_id"]},
+                {
+                    "student_id": authoring["student_id"],
+                    "course_id": authoring["course_id"],
+                },
             )
 
     before = authoring["student"].get(f"/api/quizzes/{quiz_id}/questions")
