@@ -1,0 +1,141 @@
+.author-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 520px;
+}
+
+.author-form label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #16304d;
+  margin-top: 8px;
+}
+
+.author-form input[type="text"],
+.author-form input[type="number"] {
+  padding: 9px 11px;
+  min-height: 42px;
+  border: 1px solid #c9d6e6;
+  border-radius: 6px;
+  font: inherit;
+  background: #ffffff;
+  color: #16304d;
+}
+
+.author-form input:focus-visible,
+.author-form .answer-row input:focus-visible {
+  outline: 3px solid #f0a500;
+  outline-offset: 2px;
+}
+
+.answer-set {
+  margin-top: 14px;
+  border: 1px solid #d7e3f2;
+  border-radius: 8px;
+  padding: 12px 14px 14px;
+}
+
+.answer-set legend {
+  padding: 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #16304d;
+}
+
+.answer-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.answer-row input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  accent-color: #27598f;
+  cursor: pointer;
+}
+
+.answer-row input[type="text"] {
+  flex: 1;
+  min-width: 0;
+}
+
+/* The visible placeholder carries the label for sighted users; the real
+   label stays in the accessibility tree for everyone else. */
+.sr-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.added-list {
+  margin: 0 0 16px;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.added-question {
+  margin: 0 0 6px;
+  font-weight: 600;
+  color: #16304d;
+}
+
+.added-list ul {
+  margin: 0;
+  padding-left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.added-list ul li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.added-list .is-correct {
+  font-weight: 600;
+}
+
+/* .submit-button and .verdict also arrive with the take-quiz page; defined
+   here so this page does not depend on that branch. */
+.submit-button {
+  margin-top: 14px;
+  padding: 11px 20px;
+  min-height: 44px;
+  border: none;
+  border-radius: 6px;
+  background: #27598f;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.submit-button:hover:not(:disabled) { background: #1d4471; }
+.submit-button:disabled { opacity: 0.55; cursor: not-allowed; }
+.submit-button:focus-visible { outline: 3px solid #f0a500; outline-offset: 2px; }
+
+.verdict {
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.verdict.correct { background: #dcefe8; color: #1d7a62; }

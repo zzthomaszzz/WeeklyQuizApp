@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router'
 import '../StudentsDashboard/Dashboard.css'
 import type { DashboardData } from '../../api/client'
 import './LecturerDashboard.css'
@@ -26,6 +27,9 @@ export function LecturerDashboard({ data }: { data: DashboardData }) {
         {courses.length === 0 && <p className="intro-copy">No courses have been assigned to you yet.</p>}<div className="lecturer-courses">{courses.map(course => <button key={course.id} className="lecturer-course" aria-pressed={courseId === String(course.id)} onClick={() => setCourseId(courseId === String(course.id) ? 'all' : String(course.id))}>
           <span className="course-code">{course.code}</span><strong>{course.name}</strong><span>{quizzes.filter(quiz => quiz.course_id === course.id).length} quizzes</span>
         </button>)}</div>
+        {courses.length > 0 && <p className="new-quiz-links">{courses.map(course =>
+          <Link key={course.id} className="text-button" to={`/lecturer/courses/${course.id}/quizzes/new`}>New quiz in {course.code}</Link>
+        )}</p>}
       </section>
       <section className="quiz-section lecturer-quizzes" aria-labelledby="lecturer-quizzes-title">
         <div className="section-heading"><h2 id="lecturer-quizzes-title">Your quizzes</h2><span className="sample-label">{visibleQuizzes.length} quizzes</span></div>

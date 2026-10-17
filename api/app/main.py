@@ -4,7 +4,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from starlette.responses import JSONResponse
 
 from app.config import settings
-from app.routers import attempts, auth, health, quizzes
+from app.routers import attempts, auth, authoring, health, quizzes
 
 app = FastAPI(title="Weekly Quiz API")
 
@@ -20,6 +20,7 @@ app.include_router(health.router)
 app.include_router(auth.router)
 app.include_router(quizzes.router)
 app.include_router(attempts.router)
+app.include_router(authoring.router)
 
 
 @app.exception_handler(SQLAlchemyError)
