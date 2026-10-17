@@ -15,6 +15,10 @@ class QuizUpdate(BaseModel):
         max_length=200,
     )
     material_url: str | None = None
+    max_attempts: int | None = Field(
+        default=None,
+        gt=0,
+    )
     status: Literal[
         "draft",
         "published",

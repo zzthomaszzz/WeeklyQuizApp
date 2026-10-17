@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router'
-import { ApiError, postJson } from '../../api/client'
+import { ApiError, patchJson, postJson } from '../../api/client'
 import type { CreatedQuestion, CreatedQuiz } from '../../api/client'
 import '../StudentsDashboard/Dashboard.css'
 import './AuthorQuiz.css'
@@ -16,6 +16,7 @@ export function AuthorQuizPage() {
   const [error, setError] = useState('')
   const [unauthorized, setUnauthorized] = useState(false)
   const [pending, setPending] = useState(false)
+  const [published, setPublished] = useState(false)
 
   const [weekNumber, setWeekNumber] = useState('')
   const [title, setTitle] = useState('')
@@ -86,6 +87,21 @@ export function AuthorQuizPage() {
       setTopicTag('')
       setAnswers(emptyAnswers())
       setCorrectIndex(null)
+    } catch (problem) {
+      handle(problem)
+    } finally {
+      setPending(false)
+    }
+  }
+
+  async function publishQuiz() {
+    if (pending || !quiz) return
+
+    setPending(true)
+    setError('')
+    try {
+      await patchJson<CreatedQuiz>(`/quizzes/${quiz.id}`, { status: 'published' })
+      setPublished(true)
     } catch (problem) {
       handle(problem)
     } finally {
@@ -231,6 +247,26 @@ export function AuthorQuizPage() {
                   ))}
                 </ol>
               )}
+              <div className="publish-row">
+                <button
+                  type="button"
+                  className="submit-button"
+                  onClick={publishQuiz}
+                  disabled={pending || questions.length === 0 || published}
+                >
+                  {published ? 'Published' : pending ? 'Publishing…' : 'Publish quiz'}
+                </button>
+                {published && (
+                  <p className="publish-note" role="status">
+                    Students can now see this quiz.
+                  </p>
+                )}
+                {!published && questions.length === 0 && (
+                  <p className="publish-note">
+                    Add at least one question before publishing.
+                  </p>
+                )}
+              </div>
               <Link className="text-button" to="/lecturer">Back to my courses</Link>
             </section>
           </>
