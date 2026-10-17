@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { useNavigate } from 'react-router'
 import { request } from '../../api/client'
 import type { User } from '../../api/client'
 import styles from './LoginPage.module.css'
@@ -44,7 +44,6 @@ export function LoginPage() {
                         <input id="password" name="password" type="password" autoComplete="current-password" required disabled={pending} />
                         {error && <p role="alert">{error}</p>}
                         <button type="submit" disabled={pending}>{pending ? 'Signing in…' : 'Submit'}</button>
-                        <p className={styles.altAction}>New here? <Link to="/register">Create an account</Link></p>
                     </form>
                 </div>
             </section>
