@@ -184,12 +184,6 @@ def test_a_student_cannot_author_anything(authoring):
     assert response.status_code == 403
 
 
-@pytest.mark.xfail(
-    reason="GET /quizzes/{id}/questions has no authorisation on main; "
-    "PR #31 adds it. Expect this to XPASS once that merges, then drop "
-    "this marker.",
-    strict=False,
-)
 def test_the_new_quiz_is_invisible_to_students_until_published(authoring):
     quiz_id = create_quiz(authoring["lecturer"], authoring["course_id"]).json()["id"]
 
