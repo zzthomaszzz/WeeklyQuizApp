@@ -55,3 +55,18 @@ it('keeps failed login on the login page', async () => {
   expect(await screen.findByRole('alert')).toHaveTextContent('Email or password is incorrect')
   expect(screen.getByRole('button', { name: 'Submit' })).toBeEnabled()
 })
+
+it('opens the authoring page from the lecturer new-quiz link', async () => {
+  // LecturerDashboard links here; without a matching route it fell through
+  // to the catch-all and showed "Page not found".
+  render(<MemoryRouter initialEntries={['/lecturer/courses/1/quizzes/new']}><App /></MemoryRouter>)
+
+  expect(await screen.findByRole('heading', { name: 'New quiz' })).toBeInTheDocument()
+  expect(screen.queryByRole('heading', { name: 'Page not found' })).not.toBeInTheDocument()
+})
+
+it('no longer serves the internal dev page', () => {
+  render(<MemoryRouter initialEntries={['/dev']}><App /></MemoryRouter>)
+
+  expect(screen.getByRole('heading', { name: 'Page not found' })).toBeInTheDocument()
+})
