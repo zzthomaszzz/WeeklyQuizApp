@@ -96,6 +96,14 @@ export function postJson<T>(path: string, body: unknown): Promise<T> {
   })
 }
 
+export function patchJson<T>(path: string, body: unknown): Promise<T> {
+  return request<T>(path, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+}
+
 /** Clears the session cookie. The server owns the cookie, so there is
  *  nothing to remove on this side. */
 export function logout(): Promise<void> {

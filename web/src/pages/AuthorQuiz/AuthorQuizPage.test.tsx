@@ -243,3 +243,65 @@ it('sends an unauthenticated visitor to the login page', async () => {
 
   expect(await screen.findByRole('heading', { name: 'Sign in' })).toBeInTheDocument()
 })
+
+
+it('cannot publish until a question has been added', async () => {
+  const user = userEvent.setup()
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(ok(CREATED_QUIZ, 201)))
+  renderPage()
+
+  await createQuiz(user)
+  await screen.findByLabelText('Question')
+
+  expect(screen.getByRole('button', { name: 'Publish quiz' })).toBeDisabled()
+})
+
+it('publishes the quiz once a question exists', async () => {
+  const user = userEvent.setup()
+  const fetchMock = vi
+    .fn()
+    .mockResolvedValueOnce(ok(CREATED_QUIZ, 201))
+    .mockResolvedValueOnce(ok(CREATED_QUESTION, 201))
+    .mockResolvedValueOnce(ok({ ...CREATED_QUIZ, status: 'published' }))
+  vi.stubGlobal('fetch', fetchMock)
+  renderPage()
+
+  await createQuiz(user)
+  await fillQuestion(user)
+  await user.click(screen.getByRole('button', { name: 'Add question' }))
+  await screen.findByRole('list', { name: /questions in this quiz/i })
+
+  await user.click(screen.getByRole('button', { name: 'Publish quiz' }))
+
+  expect(await screen.findByText(/students can now see/i)).toBeInTheDocument()
+
+  const [path, init] = fetchMock.mock.calls[2]
+  expect(path).toBe('/api/quizzes/50')
+  expect(init.method).toBe('PATCH')
+  expect(JSON.parse(init.body)).toEqual({ status: 'published' })
+})
+
+it('shows the server message when publishing is refused', async () => {
+  const user = userEvent.setup()
+  vi.stubGlobal(
+    'fetch',
+    vi
+      .fn()
+      .mockResolvedValueOnce(ok(CREATED_QUIZ, 201))
+      .mockResolvedValueOnce(ok(CREATED_QUESTION, 201))
+      .mockResolvedValueOnce(
+        ok({ detail: 'A quiz needs at least one question before it can be published' }, 422)
+      )
+  )
+  renderPage()
+
+  await createQuiz(user)
+  await fillQuestion(user)
+  await user.click(screen.getByRole('button', { name: 'Add question' }))
+  await screen.findByRole('list', { name: /questions in this quiz/i })
+
+  await user.click(screen.getByRole('button', { name: 'Publish quiz' }))
+
+  expect(await screen.findByRole('alert')).toHaveTextContent(/at least one question/i)
+})
+
